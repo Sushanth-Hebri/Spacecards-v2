@@ -1,42 +1,138 @@
-import { Link } from 'react-router-dom';
-import { FaSun, FaMoon } from 'react-icons/fa';
-import { useTheme } from '../hooks/useTheme';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MixCard } from '../components/MixCard';
+import { fetchMixContent, MixContent } from '../services/api';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { FaSearch, FaTv, FaTimes } from 'react-icons/fa';
 
-export default function Navbar() {
-  const { theme, toggleTheme } = useTheme();
+export default function Mix() {
+  const [content, setContent] = useState<MixContent[]>([]);
+  const [filteredContent, setFilteredContent] = useState<MixContent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showLiveModal, setShowLiveModal] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    const saved = sessionStorage.getItem('mixScrollIndex');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
+  useEffect(() => {
+    loadContent();
+    return () => {
+      sessionStorage.setItem('mixScrollIndex', currentIndex.toString());
+    };
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem('mixScrollIndex', currentIndex.toString());
+  }, [currentIndex]);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredContent(content);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = content.filter(item => {
+        const tags = item.tags.join(' ').toLowerCase();
+        const title = (item.title || '').toLowerCase();
+        const contentText = (item.content || '').toLowerCase();
+        return tags.includes(query) || 
+               title.includes(query) || 
+               contentText.includes(query);
+      });
+      setFilteredContent(filtered);
+    }
+  }, [searchQuery, content]);
+
+  const loadContent = async () => {
+    setLoading(true);
+    const data = await fetchMixContent();
+    setContent(data);
+    setFilteredContent(data);
+    setLoading(false);
+  };
+
+  const LiveStreamModal = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+      onClick={() => setShowLiveModal(false)}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="w-full h-full flex flex-col"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center p-4 bg-gray-900">
+          <h2 className="text-xl font-bold text-white">TV9 Live Stream</h2>
+          <button
+            onClick={() => setShowLiveModal(false)}
+            className="p-2 hover:bg-gray-800 rounded-xl transition-colors"
+          >
+            <FaTimes className="w-5 h-5 text-white" />
+          </button>
+        </div>
+
+        <div className="flex-1 bg-black">
+          <iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/jdJoOhqCipA"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+></iframe>
+
+        </div>
+      </motion.div>
+    </motion.div>
+  );
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-md z-50">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-bold text-gray-900 dark:text-white">
-            SpaceCards
-          </Link>
-          
-          <div className="flex items-center space-x-8">
-            <Link
-              to="/feed"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
-            >
-              Feed
-            </Link>
-            
-            <Link
-              to="/mix"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
-            >
-              Mix
-            </Link>
-            
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-            >
-              {theme === 'dark' ? <FaSun className="w-5 h-5" /> : <FaMoon className="w-5 h-5" />}
-            </button>
-          </div>
+    <div className="min-h-screen pt-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
+      {/* Search Bar */}
+      <div className="fixed top-20 left-0 right-0 z-40 px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-md mx-auto relative">
+          <input
+            type="text"
+            placeholder="Search content..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl border-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+          />
+          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
         </div>
       </div>
-    </nav>
+
+      {/* Live Stream Button */}
+      <button
+        onClick={() => setShowLiveModal(true)}
+        className="fixed bottom-6 right-6 z-40 p-4 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+      >
+        <FaTv className="w-6 h-6" />
+      </button>
+
+      {loading ? (
+        <LoadingSpinner />
+      ) : (
+        <div className="h-[calc(100vh-8rem)] mt-14 overflow-y-scroll hide-scrollbar snap-y snap-mandatory">
+          {filteredContent.map((item, index) => (
+            <MixCard
+              key={item.id}
+              content={item}
+              onInView={() => setCurrentIndex(index)}
+            />
+          ))}
+        </div>
+      )}
+
+      <AnimatePresence>
+        {showLiveModal && <LiveStreamModal />}
+      </AnimatePresence>
+    </div>
   );
 }
