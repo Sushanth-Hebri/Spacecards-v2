@@ -1,11 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FaSun, FaMoon, FaSearch } from 'react-icons/fa';
+import { FaSun, FaMoon } from 'react-icons/fa';
 import { useTheme } from '../hooks/useTheme';
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
-  const showExtraLinks = location.pathname === '/';
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 z-50">
@@ -34,23 +33,6 @@ export default function Navbar() {
               >
                 Mix
               </Link>
-
-              {showExtraLinks && (
-                <>
-                  <a
-                    href="#about"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
-                  >
-                    About
-                  </a>
-                  <a
-                    href="#contact"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
-                  >
-                    Contact
-                  </a>
-                </>
-              )}
             </div>
           </div>
 
