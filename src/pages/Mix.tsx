@@ -53,44 +53,45 @@ export default function Mix() {
   };
 
   const LiveStreamModal = () => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center"
+    onClick={() => setShowLiveModal(false)}
+  >
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black z-50 flex items-center justify-center"
-      onClick={() => setShowLiveModal(false)}
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.9, opacity: 0 }}
+      className="w-full max-w-md mx-auto bg-gray-900 rounded-lg overflow-hidden"
+      onClick={(e) => e.stopPropagation()}
     >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="w-full h-full flex flex-col"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-center p-4 bg-gray-900">
-          <h2 className="text-xl font-bold text-white">TV9 Live Stream</h2>
-          <button
-            onClick={() => setShowLiveModal(false)}
-            className="p-2 hover:bg-gray-800 rounded-xl transition-colors"
-          >
-            <FaTimes className="w-5 h-5 text-white" />
-          </button>
-        </div>
+      {/* Modal Header */}
+      <div className="flex justify-between items-center p-4 bg-gray-800">
+        <h2 className="text-xl font-bold text-white">TV9 Live Stream</h2>
+        <button
+          onClick={() => setShowLiveModal(false)}
+          className="p-2 hover:bg-gray-700 rounded-xl transition-colors"
+        >
+          <FaTimes className="w-5 h-5 text-white" />
+        </button>
+      </div>
 
-        <div className="flex-1 bg-black">
-          <iframe
-  width="560"
-  height="315"
-  src="https://www.youtube.com/embed/jdJoOhqCipA"
-  frameBorder="0"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-  allowFullScreen
-></iframe>
-
-        </div>
-      </motion.div>
+      {/* YouTube iframe */}
+      <div className="relative w-full aspect-video bg-black">
+        <iframe
+          className="w-full h-full"
+          src="https://www.youtube.com/embed/jdJoOhqCipA"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+      </div>
     </motion.div>
-  );
+  </motion.div>
+);
+
 
   return (
     <div className="min-h-screen pt-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
