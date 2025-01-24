@@ -26,7 +26,6 @@ export function MixCard({ content, onInView }: MixCardProps) {
           url: window.location.href
         });
       } else {
-        // Fallback to copying to clipboard
         await navigator.clipboard.writeText(window.location.href);
         alert('Link copied to clipboard!');
       }
@@ -35,32 +34,70 @@ export function MixCard({ content, onInView }: MixCardProps) {
     }
   };
 
+  const getYouTubeEmbedUrl = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return match && match[2].length === 11
+      ? `https://www.youtube.com/embed/${match[2]}`
+      : null;
+  };
+
   const renderContent = () => {
     switch (content.type) {
       case 'video':
+        const embedUrl = content.videoUrl ? getYouTubeEmbedUrl(content.videoUrl) : null;
         return (
           <div className="relative aspect-video bg-black rounded-3xl overflow-hidden">
-            <video
-              src={content.videoUrl}
-              controls
-              controlsList="nodownload"
-              className="w-full h-full object-contain"
-              poster={content.imageUrl}
-            />
+            {embedUrl ? (
+              <iframe
+                src={embedUrl}
+                className="w-full h-full"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                title={content.title || "Video content"}
+              />
+            ) : (
+              <video
+                src={content.videoUrl}
+                controls
+                controlsList="nodownload"
+                className="w-full h-full object-contain"
+                poster={content.imageUrl}
+              />
+            )}
           </div>
         );
       case 'song':
         return (
           <div className="relative bg-gradient-to-br from-purple-600 to-blue-600 p-6 rounded-3xl">
+            {content.imageUrl && (
+              <div className="absolute inset-0 rounded-3xl overflow-hidden">
+                <img
+                  src={content.imageUrl}
+                  alt={content.title || "Song thumbnail"}
+                  className="w-full h-full object-cover opacity-50"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/80 to-blue-600/80" />
+              </div>
+            )}
             <FaMusic className="w-12 h-12 text-white/50 absolute top-4 right-4" />
-            <h3 className="text-xl font-bold text-white mb-4">{content.title}</h3>
-            <audio
-              controls
-              controlsList="nodownload"
-              className="w-full mix-audio-player"
-            >
-              <source src={content.audioUrl} type="audio/mpeg" />
-            </audio>
+            <h3 className="text-xl font-bold text-white mb-4 relative z-10">{content.title}</h3>
+            <div className="relative z-10 w-full">
+              <audio
+                controls
+                controlsList="nodownload"
+                className="w-full mix-audio-player"
+                style={{
+                  minWidth: '200px',
+                  height: '40px',
+                  borderRadius: '20px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }}
+              >
+                <source src={content.audioUrl} type="audio/mpeg" />
+                Your browser does not support the audio element.
+              </audio>
+            </div>
           </div>
         );
       case 'image':
